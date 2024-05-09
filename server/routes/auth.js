@@ -8,21 +8,42 @@ const auth = require("../middleware/auth");
 // Sign Up
 authRouter.post("/api/signup", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, gender, email, level, password, confirmPassword } = req.body;
+
+    // Validate fields
+    if (!name || !email || !password || !confirmPassword) {
+      return res.status(400).json({ msg: "Please fill in all mandatory fields" });
+    }
+
+    // Additional field validations
+    if (password.length < 8) {
+      return res.status(400).json({ msg: "Password must be at least 8 characters long" });
+    }
+    if (password != confirmPassword) {
+      return res.status(400).json({ msg: "Passwords do not match" });
+    }
+    // Optional field validations
+    if (gender && !["Male", "Female"].includes(gender)) {
+      return res.status(400).json({ msg: "Invalid gender" });
+    }
+    if (level && ![1, 2, 3, 4].includes(level)) {
+      return res.status(400).json({ msg: "Invalid level" });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ msg: "User with same email already exists!" });
+      return res.status(400).json({ msg: "User with the same email already exists!" });
     }
 
     const hashedPassword = await bcryptjs.hash(password, 8);
 
     let user = new User({
-      email,
-      password: hashedPassword,
       name,
+      gender,
+      email,
+      level,
+      password: hashedPassword,
+      confirmPassword,
     });
     user = await user.save();
     res.json(user);
@@ -32,7 +53,6 @@ authRouter.post("/api/signup", async (req, res) => {
 });
 
 // Sign In
-
 authRouter.post("/api/signin", async (req, res) => {
   try {
     const { email, password } = req.body;
