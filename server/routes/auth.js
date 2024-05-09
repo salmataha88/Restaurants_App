@@ -43,13 +43,12 @@ authRouter.post("/api/signup", async (req, res) => {
       email,
       level,
       password: hashedPassword,
-      confirmPassword,
       location: {
         type: "Point",
         coordinates: [location.longitude, location.latitude],
       },
     });
-    
+
     user = await user.save();
     res.json(user);
   } catch (e) {

@@ -33,10 +33,6 @@ const userSchema = mongoose.Schema({
     type: String,
     minlength: 8,
   },
-  confirmPassword: {
-    required: true,
-    type: String,
-  },
   location: {
     type: {
       type: String,
