@@ -14,6 +14,7 @@ const userSchema = mongoose.Schema({
     required: true,
     type: String,
     trim: true,
+    unique: true, // Ensure unique email addresses
     validate: {
       validator: (value) => {
         const re =
@@ -36,7 +37,23 @@ const userSchema = mongoose.Schema({
     required: true,
     type: String,
   },
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"], // Specify that it's a point
+      required: true,
+    },
+    coordinates: {
+      type: [Number], // Array of numbers for [longitude, latitude]
+      required: true,
+      validate: {
+        validator: (value) => value.length === 2,
+        message: "Coordinates array must contain exactly 2 numbers",
+      },
+    },
+  },
 });
+
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

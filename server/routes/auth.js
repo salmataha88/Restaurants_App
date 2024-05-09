@@ -8,7 +8,7 @@ const auth = require("../middleware/auth");
 // Sign Up
 authRouter.post("/api/signup", async (req, res) => {
   try {
-    const { name, gender, email, level, password, confirmPassword } = req.body;
+    const { name, gender, email, level, password, confirmPassword , location} = req.body;
 
     // Validate fields
     if (!name || !email || !password || !confirmPassword) {
@@ -44,7 +44,12 @@ authRouter.post("/api/signup", async (req, res) => {
       level,
       password: hashedPassword,
       confirmPassword,
+      location: {
+        type: "Point",
+        coordinates: [location.longitude, location.latitude],
+      },
     });
+    
     user = await user.save();
     res.json(user);
   } catch (e) {
