@@ -1,14 +1,10 @@
-const express = require("express");
-const bcryptjs = require("bcryptjs");
-const User = require("../models/user");
-const authRouter = express.Router();
-const jwt = require("jsonwebtoken");
-const auth = require("../middleware/auth");
+import bcrypt from "bcryptjs";
+import JWT from "jsonwebtoken";
+import User from "../../DB/models/user.js";
 
-// Sign Up
-authRouter.post("/api/signup", async (req, res) => {
+export const signUp = async (req, res) => {
   try {
-    const { name, gender, email, level, password, confirmPassword , location} = req.body;
+    const { name, gender, email, level, password, confirmPassword, location } = req.body;
 
     // Validate fields
     if (!name || !email || !password || !confirmPassword) {
@@ -35,7 +31,7 @@ authRouter.post("/api/signup", async (req, res) => {
       return res.status(400).json({ msg: "User with the same email already exists!" });
     }
 
-    const hashedPassword = await bcryptjs.hash(password, 8);
+    const hashedPassword = await bcrypt.hash(password, 8);
 
     let user = new User({
       name,
@@ -54,51 +50,63 @@ authRouter.post("/api/signup", async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-});
+};
 
-// Sign In
-authRouter.post("/api/signin", async (req, res) => {
+export const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(400)
-        .json({ msg: "User with this email does not exist!" });
+      return res.status(400).json({ msg: "User with this email does not exist!" });
     }
 
-    const isMatch = await bcryptjs.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ msg: "Incorrect password." });
     }
 
-    const token = jwt.sign({ id: user._id }, "passwordKey");
-    res.json({ token, ...user._doc });
+    const token = JWT.sign({ id: user._id}, "passwordKey");
+
+    res.status(200).json(
+    { 
+      Message : "SignIn Successfully.." ,
+      token, ...user._doc 
+    });
+
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-});
+};
 
-authRouter.post("/tokenIsValid", async (req, res) => {
+export const tokenIsValid = async (req, res) => {
   try {
     const token = req.header("x-auth-token");
     if (!token) return res.json(false);
-    const verified = jwt.verify(token, "passwordKey");
+    const verified = JWT.verify(token, "passwordKey");
     if (!verified) return res.json(false);
 
     const user = await User.findById(verified.id);
     if (!user) return res.json(false);
-    res.json(true);
+    res.status(200).json(true);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-});
+};
 
-// get user data
-authRouter.get("/", auth, async (req, res) => {
-  const user = await User.findById(req.user);
-  res.json({ ...user._doc, token: req.token });
-});
+export const getUserData = async (req, res) => {
+  try {
+    const user = await User.findById(req.user);
 
-module.exports = authRouter;
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Extracting raw user data and adding the token
+    const userData = { ...user._doc};
+
+    res.json(userData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
