@@ -1,4 +1,4 @@
-name: flutter_node_auth
+name: restaurant_app
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -37,6 +37,8 @@ dependencies:
   provider: ^6.0.3
   http: ^0.13.5
   shared_preferences: ^2.0.15
+  rxdart: ^0.27.7
+  geolocator: ^12.0.0
 
 dev_dependencies:
   flutter_test:

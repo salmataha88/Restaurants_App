@@ -37,7 +37,6 @@ const userSchema = Schema({
     type: {
       type: String,
       enum: ["Point"],
-      required: true,
     },
     coordinates: {
       type: [Number], // Array of numbers for [longitude, latitude]

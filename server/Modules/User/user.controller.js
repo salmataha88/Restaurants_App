@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import JWT from "jsonwebtoken";
-import User from "../../DB/models/user.js";
+import User from "../../DB/Models/user.js";
 
 export const signUp = async (req, res) => {
   try {
@@ -46,7 +46,7 @@ export const signUp = async (req, res) => {
     });
 
     user = await user.save();
-    res.json(user);
+    res.status(200).json(user);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -105,7 +105,7 @@ export const getUserData = async (req, res) => {
     // Extracting raw user data and adding the token
     const userData = { ...user._doc};
 
-    res.json(userData);
+    res.status(200).json(userData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
