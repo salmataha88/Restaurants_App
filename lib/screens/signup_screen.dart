@@ -1,94 +1,215 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_node_auth/custom_textfield.dart';
-import 'package:flutter_node_auth/screens/login_screen.dart';
-import 'package:flutter_node_auth/services/auth_services.dart';
+import 'package:geolocator/geolocator.dart';
+import '../main.dart';
+import '../models/user.dart';
+import '../services/api_services.dart';
 
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends StatelessWidget {
   const SignupScreen({Key? key}) : super(key: key);
 
-  @override
-  State<SignupScreen> createState() => _SignupScreenState();
-}
 
-class _SignupScreenState extends State<SignupScreen> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController nameController = TextEditingController();
-  final AuthService authService = AuthService();
+  Future<String> _location() async {
+    // Check if location permissions are granted
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled.');
+    }
 
-  void signupUser() {
-    authService.signUpUser(
-      context: context,
-      email: emailController.text,
-      password: passwordController.text,
-      name: nameController.text,
+    // Request location permissions
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      throw Exception('Location permissions are denied.');
+    } else if (permission == LocationPermission.deniedForever) {
+      throw Exception('Location permissions are permanently denied.');
+    }
+
+    // Get user's current location
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
     );
+    String location = '${position.latitude}, ${position.longitude}';
+    return location;
   }
+
 
   @override
   Widget build(BuildContext context) {
+    final signupBloc = BlocProvider.of(context);
+
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            "Signup",
-            style: TextStyle(fontSize: 30),
-          ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.08),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            child: CustomTextField(
-              controller: nameController,
-              hintText: 'Enter your name',
+      appBar: AppBar(title: const Text('Signup')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            StreamBuilder<String>(
+              stream: signupBloc.name,
+              builder: (context, snapshot) {
+                return TextField(
+                  onChanged: signupBloc.changeName,
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    errorText: snapshot.error?.toString(),
+                  ),
+                );
+              },
             ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            child: CustomTextField(
-              controller: emailController,
-              hintText: 'Enter your email',
+            StreamBuilder<String>(
+              stream: signupBloc.email,
+              builder: (context, snapshot) {
+                return TextField(
+                  onChanged: signupBloc.changeEmail,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    errorText: snapshot.error?.toString(),
+                  ),
+                );
+              },
             ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            child: CustomTextField(
-              controller: passwordController,
-              hintText: 'Enter your password',
+            StreamBuilder<String>(
+              stream: signupBloc.password,
+              builder: (context, snapshot) {
+                return TextField(
+                  onChanged: signupBloc.changePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    errorText: snapshot.error?.toString(),
+                  ),
+                  obscureText: true,
+                );
+              },
             ),
-          ),
-          const SizedBox(height: 40),
-          ElevatedButton(
-            onPressed: signupUser,
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.blue),
-              textStyle: MaterialStateProperty.all(
-                const TextStyle(color: Colors.white),
-              ),
-              minimumSize: MaterialStateProperty.all(
-                Size(MediaQuery.of(context).size.width / 2.5, 50),
-              ),
+            StreamBuilder<String>(
+              stream: signupBloc.confirmPassword,
+              builder: (context, snapshot) {
+                return TextField(
+                  onChanged: signupBloc.changeConfirmPassword,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    errorText: snapshot.error?.toString(),
+                  ),
+                  obscureText: true,
+                );
+              },
             ),
-            child: const Text(
-              "Sign up",
-              style: TextStyle(color: Colors.white, fontSize: 16),
+            StreamBuilder<String>(
+              stream: signupBloc.gender,
+              builder: (context, snapshot) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    Text('Gender', style: Theme.of(context).textTheme.titleMedium),
+                    Row(
+                      children: [
+                        Radio<String>(
+                          value: 'Male',
+                          groupValue: snapshot.data,
+                          onChanged: (value) => signupBloc.changeGender!(value!),
+                        ),
+                        const Text('Male'),
+                        Radio<String>(
+                          value: 'Female',
+                          groupValue: snapshot.data,
+                          onChanged: (value) => signupBloc.changeGender!(value!),
+                        ),
+                        const Text('Female'),
+                      ],
+                    ),
+                  ],
+                );
+              },
             ),
-          ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginScreen(),
-                ),
-              );
-            },
-            child: const Text('Login User?'),
-          ),
-        ],
+            StreamBuilder<int>(
+              stream: signupBloc.level,
+              builder: (context, snapshot) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    Text('Level', style: Theme.of(context).textTheme.titleMedium),
+                    DropdownButton<int>(
+                      value: snapshot.data,
+                      onChanged: (value) => signupBloc.changeLevel!(value!),
+                      items: const [
+                        DropdownMenuItem<int>(
+                          value: 1,
+                          child: Text('1'),
+                        ),
+                        DropdownMenuItem<int>(
+                          value: 2,
+                          child: Text('2'),
+                        ),
+                        DropdownMenuItem<int>(
+                          value: 3,
+                          child: Text('3'),
+                        ),
+                        DropdownMenuItem<int>(
+                          value: 4,
+                          child: Text('4'),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                final name = await signupBloc.name.first;
+                final email = await signupBloc.email.first;
+                final password = await signupBloc.password.first;
+                final confirmPassword = await signupBloc.confirmPassword.first;
+                final gender = await signupBloc.gender.first;
+                final level = await signupBloc.level.first;
+                final location = await _location();
+
+                if (name.isNotEmpty &&
+                    email.isNotEmpty &&
+                    password.isNotEmpty &&
+                    confirmPassword.isNotEmpty &&
+                    location.isNotEmpty) {
+                  if (password == confirmPassword) {
+                    final user = User(
+                      name: name,
+                      email: email,
+                      password: password,
+                      confirmPassword: confirmPassword,
+                      gender: gender,
+                      level: level,
+                      latitude: double.parse(location.split(',')[0]), // Extract latitude from location string
+                      longitude: double.parse(location.split(',')[1]), 
+                      
+                    );
+                    try {
+                      final apiProvider = ApiProvider();
+                      final responseUser = await apiProvider.signup(user);
+                      print('Signup successful: $responseUser');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Signup successful!')),
+                      );
+                    } catch (error) {
+                      print('Signup error===: $error');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Signup failed====: $error')),
+                      );
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Passwords do not match')),
+                    );
+                  }
+                }else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please fill all fields and enable location services')),
+                  );
+                }               
+              },
+              child: const Text('Signup'),
+            ),
+          ],
+        ),
       ),
     );
   }
