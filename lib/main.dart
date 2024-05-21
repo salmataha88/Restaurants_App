@@ -1,28 +1,16 @@
 import 'package:flutter/material.dart';
-import 'Blocs/signup_bloc.dart';
+import 'providers/bloc_provider.dart';
+import 'providers/user_provider.dart';
+import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 
-class BlocProvider extends InheritedWidget {
-  final SignupBloc signupBloc;
-
-  BlocProvider({Key? key, required Widget child})
-      : signupBloc = SignupBloc(),
-        super(key: key, child: child);
-
-  @override
-  bool updateShouldNotify(InheritedWidget oldWidget) => true;
-
-  static SignupBloc of(BuildContext context) {
-    final provider = context.dependOnInheritedWidgetOfExactType<BlocProvider>();
-    assert(provider != null, 'No BlocProvider found in context');
-    return provider!.signupBloc;
-  }
-}
 
 void main() {
   runApp(
-    BlocProvider(
-      child: const MyApp(),
+    UserProvider(
+      child: BlocProvider(
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -32,8 +20,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: SignupScreen(),
+    return MaterialApp(
+      home: const LoginScreen(),
+      routes: {
+        '/signup': (context) => const SignupScreen(),
+        '/login': (context) => const LoginScreen(),
+      },
     );
   }
 }

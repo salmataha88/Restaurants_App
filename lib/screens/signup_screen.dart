@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import '../main.dart';
 import '../models/user.dart';
-import '../services/api_services.dart';
+import '../providers/bloc_provider.dart';
+import '../services/user_services.dart';
 
 class SignupScreen extends StatelessWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -183,8 +183,8 @@ class SignupScreen extends StatelessWidget {
                       
                     );
                     try {
-                      final apiProvider = ApiProvider();
-                      final responseUser = await apiProvider.signup(user);
+                      final userapiProvider = UserApiProvider();
+                      final responseUser = await userapiProvider.signup(user);
                       print('Signup successful: $responseUser');
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Signup successful!')),
@@ -207,6 +207,12 @@ class SignupScreen extends StatelessWidget {
                 }               
               },
               child: const Text('Signup'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+              child: const Text('Already have an account? Login here'),
             ),
           ],
         ),
