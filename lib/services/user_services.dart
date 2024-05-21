@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/user.dart';
 
-class ApiProvider {
+class UserApiProvider {
   final String baseUrl = 'http://10.0.2.2:3000/user'; // Update with your IP if needed
 
   Future<User> signup(User user) async {
@@ -14,12 +14,10 @@ class ApiProvider {
       );
 
       print('Request URL: $baseUrl/signup');
-      print('Request Body: ${json.encode(user.toJson())}');
       print('Response Status Code: ${response.statusCode}');
       print('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        print('==========================response');
         try {
           final jsonResponse = json.decode(response.body);
           print('Parsed JSON Response: $jsonResponse');
@@ -40,4 +38,30 @@ class ApiProvider {
       throw Exception('Failed to signup due to network error');
     }
   }
+
+  Future<User> login(String email, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/signin'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'email': email,
+        'password': password,
+      }),
+    );
+
+    print('Request URL: $baseUrl/signin');
+    print('Response Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final currentUser = User.fromJson(json.decode(response.body));
+      print('Current User: $currentUser');
+      return currentUser;
+    } else {
+      throw Exception('Failed to login');
+    }
+  }
+
 }
