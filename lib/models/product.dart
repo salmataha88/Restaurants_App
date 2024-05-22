@@ -1,23 +1,35 @@
 class Product {
-  final String? id;
   final String name;
   final String details;
   final double price;
+  final String? id;
 
   Product({
-    this.id,
     required this.name,
     required this.details,
     required this.price,
+    this.id
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    // Parse the JSON data and return a new Product object
     return Product(
-      id: json['_id'],
-      name: json['name'],
-      details: json['details'],
-      price: json['price'].toDouble(),
+      name: json['name'] ?? '',
+      details: json['details'] ?? '',
+      price: (json['price'] as num).toDouble(),
+      id: json['_id'],  // handle optional id
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'details': details,
+      'price': price,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'Product(name: $name, details: $details, price: $price , id: $id)';
   }
 }
