@@ -1,45 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_node_auth/providers/user_provider.dart';
-import 'package:flutter_node_auth/screens/home_screen.dart';
-import 'package:flutter_node_auth/screens/signup_screen.dart';
-import 'package:flutter_node_auth/services/auth_services.dart';
-import 'package:provider/provider.dart';
+import 'package:restaurant_app/providers/product_provider.dart';
+import 'package:restaurant_app/screens/restaurantsProduct_screen.dart';
+import 'package:restaurant_app/screens/products_screen.dart';
+import 'package:restaurant_app/screens/restaurants_screen.dart';
+import 'package:restaurant_app/screens/search_screen.dart';
+import 'providers/bloc_provider.dart';
+import 'providers/restaurant_provider.dart';
+import 'providers/user_provider.dart';
+import 'screens/login_screen.dart';
+import 'screens/signup_screen.dart';
+
 
 void main() {
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-      ],
-      child: const MyApp(),
+    UserProvider(
+      child: BlocProvider(
+        child: RestaurantProvider(
+          child: ProductProvider(
+            child: const MyApp(),
+          ),
+        ),
+      ),
     ),
   );
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  final AuthService authService = AuthService();
-
-  @override
-  void initState() {
-    super.initState();
-    authService.getUserData(context);
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Node Auth',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: Provider.of<UserProvider>(context).user.token.isEmpty ? const SignupScreen() : const HomeScreen(),
+      debugShowCheckedModeBanner: false,
+      home: const LoginScreen(),
+      routes: {
+        '/signup': (context) => const SignupScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/restaurants': (context) => const RestaurantScreen(),
+        '/products': (context) => const ProductsScreen(),
+        '/search': (context) => const SearchScreen(),
+        '/restaurantsproducts': (context) => const RestaurantsProductScreen(),
+        '/logout': (context) => const LoginScreen(),
+
+      },
     );
   }
 }

@@ -1,39 +1,57 @@
-import 'dart:convert';
-
 class User {
-  final String id;
   final String name;
   final String email;
-  final String token;
+  final String? gender;
+  final int? level;
   final String password;
+  final String confirmPassword;
+  final double longitude;
+  final double latitude;
+  final String? id;
+
   User({
-    required this.id,
     required this.name,
     required this.email,
-    required this.token,
+    this.gender,
+    this.level,
     required this.password,
+    required this.confirmPassword,
+    required this.longitude,
+    required this.latitude,
+    this.id
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'email': email,
-      'token': token,
-      'password': password,
-    };
-  }
-
-  factory User.fromMap(Map<String, dynamic> map) {
+ factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: map['_id'] ?? '',
-      name: map['name'] ?? '',
-      email: map['email'] ?? '',
-      token: map['token'] ?? '',
-      password: map['password'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      gender: json['gender'] ?? '',
+      level: json['level'] ?? 0,
+      password: json['password'] ?? '',
+      confirmPassword: json['confirmPassword'] ?? '',
+      latitude: json['location']?['coordinates']?[1] ?? 0.0,
+      longitude: json['location']?['coordinates']?[0] ?? 0.0,
+      id: json['_id'],  // handle optional id
     );
   }
 
-  String toJson() => json.encode(toMap());
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'email': email,
+      'gender': gender,
+      'level': level,
+      'password': password,
+      'confirmPassword': confirmPassword,
+      'location': {
+        'longitude': longitude,
+        'latitude': latitude,
+      },
+    };
+  }
 
-  factory User.fromJson(String source) => User.fromMap(json.decode(source));
+  @override
+  String toString() {
+    return 'User(name: $name, email: $email, gender: $gender, level: $level, password: $password, latitude: $latitude, longitude: $longitude , id: $id)';
+  }
 }

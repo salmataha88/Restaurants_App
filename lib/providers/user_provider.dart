@@ -1,24 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_node_auth/models/user.dart';
+import '../blocs/user_bloc.dart';
 
-class UserProvider extends ChangeNotifier {
-  User _user = User(
-    id: '',
-    name: '',
-    email: '',
-    token: '',
-    password: '',
-  );
 
-  User get user => _user;
+class UserProvider extends InheritedWidget {
+  final UserBloc userBloc;
 
-  void setUser(String user) {
-    _user = User.fromJson(user);
-    notifyListeners();
+  UserProvider({Key? key, required Widget child})
+      : userBloc = UserBloc(),
+        super(key: key, child: child);
+
+  static UserBloc of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<UserProvider>()!.userBloc;
   }
 
-  void setUserFromModel(User user) {
-    _user = user;
-    notifyListeners();
-  }
+  @override
+  bool updateShouldNotify(InheritedWidget oldWidget) => true;
 }
