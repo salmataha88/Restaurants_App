@@ -43,17 +43,25 @@ export const getProductsForRestaurant = async (req, res) => {
   }
 };
 
-// Search products by name
+// Search products by name and return distinct products
 export const searchProducts = async (req, res) => {
   try {
     const { productName } = req.query;
     const regex = new RegExp(productName, 'i'); // Case-insensitive search
-    const products = await Product.find({ name: regex });
-    res.status(200).json(products);
+    
+    // Use aggregation to group products by name and return distinct products
+    const products = await Product.aggregate([
+      { $match: { name: regex } },
+      { $group: { _id: '$name', products: { $push: '$$ROOT' } } },
+      { $project: { _id: 0, products: { $arrayElemAt: ['$products', 0] } } }
+    ]);
+
+    res.status(200).json(products.map(item => item.products));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Get all products
 export const getAllProducts = async (req, res) => {

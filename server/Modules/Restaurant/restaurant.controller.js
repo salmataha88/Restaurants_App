@@ -5,7 +5,7 @@ import Product from '../../DB/Models/product.js';
 export const addRestaurant = async (req, res) => {
   try {
     const { name, address, location } = req.body; // Added address field
-    const newRestaurant = new Restaurant({
+    let newRestaurant = new Restaurant({
       name, 
       address,
       location: {
@@ -13,8 +13,8 @@ export const addRestaurant = async (req, res) => {
         coordinates: [location.longitude, location.latitude],
       },
     }); 
-    await newRestaurant.save();
-    res.status(201).json({Message: "Added Successfully.."});
+    newRestaurant = await newRestaurant.save();
+    res.status(200).json({Message: "Added Successfully.." , newRestaurant});
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -45,20 +45,27 @@ export const getRestaurantById = async (req, res) => {
 };
 
 
-// Get restaurants that offer a specific product
+// Get restaurants that offer a specific product by name
 export const getRestaurantsByProduct = async (req, res) => {
   try {
-    const { productId } = req.params;
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-    const restaurants = await Restaurant.find({ products: productId });
+    const { productName } = req.query; // Get the product name from the request query
+    const regex = new RegExp(productName, 'i'); // Case-insensitive search
+    
+    // Find products that match the specified name
+    const products = await Product.find({ name: regex });
+    
+    // Get an array of product IDs from the found products
+    const productIds = products.map(product => product._id);
+    
+    // Find restaurants that offer any of the found products
+    const restaurants = await Restaurant.find({ products: { $in: productIds } });
+    
     res.status(200).json(restaurants);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Update restaurant details
 export const updateRestaurant = async (req, res) => {

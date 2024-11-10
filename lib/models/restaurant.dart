@@ -1,33 +1,47 @@
-import './product.dart';
-
 class Restaurant {
-  final String? id;
   final String name;
   final String address;
-  final double latitude;
   final double longitude;
-  final List<Product> products;
+  final double latitude;
+  final List<String>? products;
+  final String? id;
 
   Restaurant({
-    this.id,
     required this.name,
     required this.address,
-    required this.latitude,
     required this.longitude,
-    required this.products,
+    required this.latitude,
+    this.products,
+    this.id
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
-    // Parse the JSON data and return a new Restaurant object
     return Restaurant(
-      id: json['_id'],
-      name: json['name'],
-      address: json['address'],
-      latitude: json['location']['coordinates'][1],
-      longitude: json['location']['coordinates'][0],
-      products: (json['products'] as List)
-          .map((productJson) => Product.fromJson(productJson))
+      name: json['name'] ?? '',
+      address: json['address'] ?? '',
+      latitude: json['location']?['coordinates']?[1] ?? 0.0,
+      longitude: json['location']?['coordinates']?[0] ?? 0.0,
+      products: (json['products'] as List<dynamic>?)
+          ?.map((e) => e as String)
           .toList(),
+      id: json['_id'],  // handle optional id
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'address': address,
+      'location': {
+        'longitude': longitude,
+        'latitude': latitude,
+      },
+      'products': products,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'Restaurant(name: $name, address: $address, location: [$longitude,$latitude], products: $products , id: $id)';
   }
 }
